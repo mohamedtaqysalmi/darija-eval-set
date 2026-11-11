@@ -30,11 +30,11 @@ def write(path: Path, *lines: str) -> Path:
 def test_real_data_is_valid() -> None:
     items, errors = load_items(REPO_DATA)
     assert errors == []
-    assert len(items) == 18
+    assert len(items) == 150
     assert {i.review_status.value for i in items} == {"draft"}
 
 
-def test_real_data_has_three_items_per_category() -> None:
+def test_real_data_has_twenty_five_items_per_category() -> None:
     items, _ = load_items(REPO_DATA)
     counts: dict[str, int] = {}
     for item in items:
@@ -48,7 +48,7 @@ def test_real_data_has_three_items_per_category() -> None:
             "instruction_following",
             "safety_refusal",
         ],
-        3,
+        25,
     )
 
 

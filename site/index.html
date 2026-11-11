@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>darija-eval-set — open Moroccan Darija LLM benchmark</title>
+    <meta
+      name="description"
+      content="150 Darija prompts with expected answers, a Typer runner, and a mock-labelled leaderboard. Validate in CI, score offline."
+    />
+    <meta property="og:title" content="darija-eval-set" />
+    <meta
+      property="og:description"
+      content="Open benchmark of Moroccan Darija prompts plus a runner that scores any OpenAI-compatible API."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://mohamedtaqysalmi.github.io/darija-eval-set/" />
+    <meta property="og:image" content="https://mohamedtaqysalmi.github.io/darija-eval-set/og.svg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="darija-eval-set" />
+    <meta
+      name="twitter:description"
+      content="Open Darija eval set: JSONL items, Typer runner, mock-labelled leaderboard."
+    />
+    <meta name="twitter:image" content="https://mohamedtaqysalmi.github.io/darija-eval-set/og.svg" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#leaderboard">Skip to leaderboard</a>
+    <header class="wrap site-header">
+      <div class="brand-row">
+        <span class="brand-mark" aria-hidden="true">د</span>
+        <strong>darija-eval-set</strong>
+      </div>
+      <nav aria-label="Primary">
+        <a href="https://github.com/mohamedtaqysalmi/darija-eval-set">GitHub</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://github.com/mohamedtaqysalmi">Profile</a>
+        <span aria-hidden="true">·</span>
+        <a href="https://www.linkedin.com/in/mohamedtaqysalmi">LinkedIn</a>
+      </nav>
+    </header>
+
+    <section class="hero" aria-label="Introduction">
+      <div class="hero-wash" aria-hidden="true"></div>
+      <div class="wrap hero-inner">
+        <h1 class="hero-brand">darija<span>-eval-set</span></h1>
+        <p class="hero-lede">
+          I built this because most public Arabic evals ignore Moroccan Darija chat—
+          mixed script, French loans, short answers. Here: 150 prompts, a Typer runner,
+          and scores you can reproduce offline.
+        </p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="#leaderboard">See mock leaderboard</a>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/mohamedtaqysalmi/darija-eval-set"
+            >Open the repo</a
+          >
+        </div>
+      </div>
+    </section>
+
+    <main>
+      <section class="wrap section" id="leaderboard" aria-labelledby="leaderboard-title">
+        <h2 id="leaderboard-title">Leaderboard</h2>
+        <p class="lede">
+          Loaded from <code>results.json</code>. The shipped file is a
+          <strong>mock provider</strong> run — not a live model ranking.
+        </p>
+        <p id="mock-banner" class="mock-banner" hidden>
+          MOCK run — numbers come from the offline mock provider.
+        </p>
+        <div class="meta-row" id="run-meta" aria-live="polite"></div>
+        <div class="filters" role="group" aria-label="Filter by category">
+          <button type="button" class="chip is-active" data-filter="all">All</button>
+          <button type="button" class="chip" data-filter="translation">Translation</button>
+          <button type="button" class="chip" data-filter="qa">QA</button>
+          <button type="button" class="chip" data-filter="sentiment">Sentiment</button>
+          <button type="button" class="chip" data-filter="code_switching">Code-switch</button>
+          <button type="button" class="chip" data-filter="instruction_following">Instruction</button>
+          <button type="button" class="chip" data-filter="safety_refusal">Safety</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">Accuracy by category</caption>
+            <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col">Passed</th>
+                <th scope="col">Total</th>
+                <th scope="col">Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="category-body">
+              <tr>
+                <td colspan="4">Loading results.json…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <caption class="sr-only">Per-item results</caption>
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Category</th>
+                <th scope="col">Scoring</th>
+                <th scope="col">Pass</th>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="wrap section" aria-labelledby="quickstart-title">
+        <h2 id="quickstart-title">Quickstart</h2>
+        <p class="lede">Mock run needs no API key. Copy, paste, get a labelled results file.</p>
+        <div class="code-block">
+          <button type="button" class="copy-btn" data-copy="pip install -e .&#10;darija-eval validate&#10;darija-eval run">
+            Copy
+          </button>
+          <pre><code>pip install -e .
+darija-eval validate
+darija-eval run</code></pre>
+        </div>
+      </section>
+
+      <section class="wrap section" aria-labelledby="how-title">
+        <h2 id="how-title">How it works</h2>
+        <p class="lede">
+          JSONL in, Pydantic in CI, provider behind env vars, exact / normalized / fuzzy
+          scoring, resumable <code>results.json</code>.
+        </p>
+        <ol class="steps">
+          <li>Validate every line against the schema.</li>
+          <li>Call mock or OpenAI-compatible chat completions (with retries + disk cache).</li>
+          <li>Score; optionally ask an LLM judge only on misses.</li>
+          <li>Write JSON + Markdown/HTML tables; this page reads the JSON.</li>
+        </ol>
+      </section>
+
+      <section class="wrap section" aria-labelledby="submit-title">
+        <h2 id="submit-title">Submit your model’s results</h2>
+        <p class="lede">
+          Run against a real provider, keep the raw <code>results.json</code>, and open a PR
+          that replaces <code>site/results.json</code> only if you document provider, model,
+          date, and that it is <em>not</em> mock. Prefer adding a second file under
+          <code>site/runs/</code> so the mock baseline stays.
+        </p>
+        <a class="text-link" href="https://github.com/mohamedtaqysalmi/darija-eval-set/blob/main/.github/pull_request_template.md"
+          >Use the PR template →</a
+        >
+      </section>
+
+      <section class="wrap section" aria-labelledby="limits-title">
+        <h2 id="limits-title">Honest limits</h2>
+        <ul class="plain-list">
+          <li>All 150 items are still <code>draft</code> — no native-speaker sign-off yet.</li>
+          <li>Mock accuracy is a hash bucket, not linguistic quality.</li>
+          <li>Safety items score a fixed refusal phrase, not free-form refusal quality.</li>
+          <li>Regional Darija and Arabizi-heavy chat are under-covered.</li>
+        </ul>
+      </section>
+
+      <section class="wrap section" aria-labelledby="built-title">
+        <h2 id="built-title">How I built it</h2>
+        <ul class="plain-list">
+          <li>Default provider is mock so CI and Pages never need secrets.</li>
+          <li>Fuzzy scoring uses difflib after Arabic-aware normalization, not a BLEU dependency.</li>
+          <li>Resume writes after every item so a killed process can continue.</li>
+          <li>Dataset card lives in <code>DATASHEET.md</code> next to the JSONL.</li>
+        </ul>
+      </section>
+
+      <section class="wrap section" aria-labelledby="status-title">
+        <h2 id="status-title">Status</h2>
+        <p class="lede">
+          <a href="https://github.com/mohamedtaqysalmi/darija-eval-set/actions/workflows/ci.yml"
+            ><img
+              src="https://github.com/mohamedtaqysalmi/darija-eval-set/actions/workflows/ci.yml/badge.svg"
+              alt="CI status"
+          /></a>
+          &nbsp;
+          <a href="https://github.com/mohamedtaqysalmi/darija-eval-set/actions/workflows/codeql.yml"
+            ><img
+              src="https://github.com/mohamedtaqysalmi/darija-eval-set/actions/workflows/codeql.yml/badge.svg"
+              alt="CodeQL status"
+          /></a>
+        </p>
+        <p>
+          Roadmap issues:
+          <a href="https://github.com/mohamedtaqysalmi/darija-eval-set/issues"
+            >github.com/mohamedtaqysalmi/darija-eval-set/issues</a
+          >
+        </p>
+      </section>
+    </main>
+
+    <footer class="wrap site-footer">
+      <p>
+        MIT ·
+        <a href="https://github.com/mohamedtaqysalmi/darija-eval-set">Repo</a>
+        ·
+        <a href="https://github.com/mohamedtaqysalmi">Mohamed-Taqy Salmi</a>
+        ·
+        <a href="https://www.linkedin.com/in/mohamedtaqysalmi">LinkedIn</a>
+      </p>
+    </footer>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

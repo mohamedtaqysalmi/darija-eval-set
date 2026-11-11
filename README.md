@@ -1,43 +1,91 @@
 # darija-eval-set
 
-An open benchmark of Moroccan Darija prompts with expected answers, plus a command-line runner that scores any model or API against them.
+Open benchmark of Moroccan Darija prompts with expected answers, plus a Typer runner that scores a mock provider or any OpenAI-compatible API.
 
-Status: early. There is an item schema, 18 seed items in `data/items.jsonl`, a `validate` command and scoring functions. The items are drafts and have not been reviewed by a native speaker yet, so they do not count as a benchmark. There is no runner or provider support yet, so nothing can be scored against a model.
+Status: **v0.1.0 draft.** `data/items.jsonl` has 150 synthetic items (all `review_status: draft`). Native-speaker review has not happened yet. The Pages leaderboard ships a **mock** run only.
 
-## Dataset
+## Demo
 
-`data/items.jsonl` has one JSON object per line: `id`, `category`, `prompt`, `expected` (list of accepted answers), `scoring` (`exact`, `normalized` or `fuzzy`), `threshold` (fuzzy only), `languages`, `notes` and `review_status` (`draft`, `reviewed` or `rejected`). Categories are translation, qa, sentiment, code_switching, instruction_following and safety_refusal, three seed items each. Every item is currently `draft`.
+- Pages: https://mohamedtaqysalmi.github.io/darija-eval-set/
+- Dataset card: [DATASHEET.md](DATASHEET.md)
 
-## Validating the data
+## Quickstart
 
-```bash
-darija-eval validate                  # checks data/items.jsonl
-darija-eval validate path/to/file.jsonl
-```
-
-It prints `file:line: reason` for every bad line and exits with status 1 if there are any. CI runs it on `data/items.jsonl`.
-
-## Development setup
-
-Requires Python 3.11 or newer.
+Requires Python 3.11+.
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate        # Windows; on macOS/Linux: source .venv/bin/activate
 pip install -e ".[dev]"
-pre-commit install
+darija-eval validate
+darija-eval run --mock-pass-rate 70 --no-resume
 ```
 
-## Running checks
+Mock output lands in `results/` and is labelled MOCK. Copy `results/results.json` to `site/results.json` when refreshing the public page.
+
+## Dataset
+
+150 JSONL rows, 25 each: translation, qa, sentiment, code_switching, instruction_following, safety_refusal. Schema and review checklist: [DATASHEET.md](DATASHEET.md), [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Runner
+
+| Env / flag | Meaning |
+| --- | --- |
+| `DARIJA_EVAL_PROVIDER` | `mock` (default) or `openai_compat` |
+| `DARIJA_EVAL_API_KEY` | Required for live calls |
+| `DARIJA_EVAL_BASE_URL` | OpenAI-compatible chat completions URL |
+| `DARIJA_EVAL_MODEL` | Model name |
+| `--retries` | Provider retries with backoff |
+| `--cache-dir` | Disk cache of responses |
+| `--no-resume` | Ignore existing `results.json` |
+| `--judge` | Optional LLM judge on rule-based misses ([docs/judge-prompt.md](docs/judge-prompt.md)) |
+
+Scoring: exact, normalized (Arabic-aware), fuzzy (`difflib`). Details: [docs/cli.md](docs/cli.md).
+
+## How it works
+
+```mermaid
+flowchart LR
+  JSONL[items.jsonl] --> Validate[darija-eval validate]
+  JSONL --> Run[darija-eval run]
+  Run --> Provider[mock or openai_compat]
+  Provider --> Score[exact / normalized / fuzzy]
+  Score --> Optional[optional --judge]
+  Optional --> Out[results.json / md / html]
+  Out --> Pages[site leaderboard]
+```
+
+## Configuration
+
+See [docs/cli.md](docs/cli.md) and [docs/submit-results.md](docs/submit-results.md) for PR submissions.
+
+## Testing
 
 ```bash
-pytest
 ruff check .
 ruff format --check .
 mypy
+pytest
 ```
 
-`pytest` also reports coverage and fails below 85%.
+Coverage gate: 85%. Strategy and manual checklist: [QA.md](QA.md). Release snapshot: [TEST_REPORT.md](TEST_REPORT.md).
+
+## Limitations
+
+- Items are drafts; do not cite mock scores as model quality.
+- Fuzzy match is string-level only.
+- Live API and LLM-judge paths are not exercised in CI.
+- Safety items use a fixed refusal phrase, not open-ended refusal quality.
+
+## Roadmap
+
+- Native-speaker review pass → flip `review_status`
+- Community submissions on the leaderboard
+- Stronger fuzzy / embedding options behind an explicit flag
+
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md). Propose items with the "Propose new items" issue template.
 
 ## License
 

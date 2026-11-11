@@ -21,6 +21,7 @@ CI runs the same commands on Python 3.11 and 3.14. Run them before pushing:
 ruff check .
 ruff format --check .
 mypy
+darija-eval validate
 pytest
 python -m build
 ```
@@ -42,9 +43,24 @@ Commit messages follow [Conventional Commits](https://www.conventionalcommits.or
 
 ## Dataset contributions
 
-Prompts and expected answers should be written by you, or come from a source whose license allows redistribution under this project's terms. Say where an item came from in the PR. Do not include personal data.
+1. Prefer the [Propose new items](https://github.com/mohamedtaqysalmi/darija-eval-set/issues/new?template=propose_items.yml) issue template before a large PR.
+2. Write prompts and expected answers yourself, or cite a license that allows MIT redistribution.
+3. No personal data, no copyrighted quotes, no actionable harmful instructions.
+4. New lines must pass `darija-eval validate`. Keep `review_status` as `draft` unless you are the designated reviewer.
+5. Matching id prefix and category (`qa-027` with `"category": "qa"`).
+6. Update `DATASHEET.md` if the item count or review mix changes.
 
-By contributing you agree that your contribution is licensed under the MIT license.
+### Review checklist (maintainers)
+
+- [ ] Schema valid, unique ids
+- [ ] Expected answers short and scorable with the declared method
+- [ ] Fuzzy items have a sensible `threshold`
+- [ ] Safety items stay on the fixed refusal template
+- [ ] Notes mention ambiguity when needed
+
+## Submitting model results
+
+Run with a real provider, keep the raw `results.json`, and open a PR that documents provider, model, date, and command. Prefer adding `site/runs/<name>.json` so the mock baseline in `site/results.json` stays.
 
 ## Conduct
 

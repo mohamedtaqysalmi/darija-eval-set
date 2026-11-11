@@ -1,0 +1,55 @@
+name: Propose new items
+description: Suggest new Darija eval prompts for data/items.jsonl
+title: "dataset: propose items for "
+labels: ["enhancement", "help wanted"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping grow the set. Items must be original (or clearly licensed), with no personal data and no copyrighted excerpts.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - translation
+        - qa
+        - sentiment
+        - code_switching
+        - instruction_following
+        - safety_refusal
+    validations:
+      required: true
+  - type: textarea
+    id: drafts
+    attributes:
+      label: Draft item(s)
+      description: One JSON object per block is fine. Include prompt, expected answers, scoring, languages.
+      placeholder: |
+        {
+          "category": "qa",
+          "prompt": "...",
+          "expected": ["..."],
+          "scoring": "normalized",
+          "languages": ["ary"]
+        }
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Provenance
+      description: Did you write these? Any third-party source and its license?
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Review checklist
+      options:
+        - label: No copyrighted text or personal data
+          required: true
+        - label: Expected answers are short and scorable
+          required: true
+        - label: I understand items land as review_status=draft until reviewed
+          required: true
