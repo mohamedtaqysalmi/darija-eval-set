@@ -36,6 +36,8 @@ jobs:
         run: ruff format --check .
       - name: Mypy
         run: mypy
+      - name: Validate dataset
+        run: darija-eval validate data/items.jsonl
       - name: Pytest
         run: pytest
       - name: Build
