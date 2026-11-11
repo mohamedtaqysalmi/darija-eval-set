@@ -1,0 +1,30 @@
+/* darija-eval-set: accent colour and leaderboard-only rules. Everything else is base.css. */
+
+:root {
+  --accent-light: #3f4bbf;
+  --accent-dark: #9aa5ff;
+}
+
+.run-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.run-meta strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.items-wrap {
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+td.pass {
+  color: var(--ok);
+}
+td.fail {
+  color: var(--bad);
+}
