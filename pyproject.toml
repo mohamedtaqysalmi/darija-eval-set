@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "darija-eval-set"
-version = "0.0.1"
+version = "0.1.0"
 description = "Open benchmark of Moroccan Darija prompts with expected answers, plus a runner that scores any model or API."
 readme = "README.md"
 license = "MIT"
@@ -13,7 +13,7 @@ requires-python = ">=3.11"
 authors = [{ name = "Mohamed-Taqy Salmi" }]
 keywords = ["darija", "moroccan-arabic", "llm-evaluation", "benchmark", "nlp"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
@@ -60,6 +60,8 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "PT", "RUF"]
 [tool.ruff.lint.per-file-ignores]
 # Arabic letters are flagged as look-alikes of Latin ones; they are intentional here
 "src/darija_eval_set/scoring.py" = ["RUF001"]
+"src/darija_eval_set/judge.py" = ["RUF001"]
+"scripts/*" = ["E501", "RUF001"]
 "tests/*" = ["RUF001"]
 
 [tool.mypy]
