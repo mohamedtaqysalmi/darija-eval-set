@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import html
 import json
+import os
 from collections import Counter
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
@@ -78,10 +80,14 @@ def build_summary(
 
 def write_json(summary: RunSummary, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
+    # Write to a temp file first so a kill mid-write cannot leave a truncated results.json
+    # that breaks the next resume.
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(
         json.dumps(summary.to_dict(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    os.replace(tmp, path)
 
 
 def render_markdown(summary: RunSummary) -> str:
@@ -131,13 +137,14 @@ def render_html(summary: RunSummary) -> str:
         if summary.is_mock
         else ""
     )
+    esc = html.escape
     cat_rows = "".join(
-        f"<tr><td>{cat}</td><td>{s['passed']}</td><td>{s['total']}</td>"
+        f"<tr><td>{esc(cat)}</td><td>{s['passed']}</td><td>{s['total']}</td>"
         f"<td>{float(s['accuracy']):.1%}</td></tr>"
         for cat, s in summary.by_category.items()
     )
     item_rows = "".join(
-        f"<tr><td>{r.id}</td><td>{r.category}</td>"
+        f"<tr><td>{esc(r.id)}</td><td>{esc(r.category)}</td>"
         f"<td>{'yes' if r.passed else 'no'}</td>"
         f"<td>{'yes' if r.cached else 'no'}</td>"
         f"<td>{'yes' if r.judge_used else 'no'}</td></tr>"
@@ -160,9 +167,10 @@ def render_html(summary: RunSummary) -> str:
   <h1>Darija eval results</h1>
   {mock_banner}
   <ul>
-    <li>Generated: <code>{summary.generated_at}</code></li>
-    <li>Provider / model: <code>{summary.provider}</code> / <code>{summary.model}</code></li>
-    <li>Dataset: <code>{summary.dataset}</code></li>
+    <li>Generated: <code>{esc(summary.generated_at)}</code></li>
+    <li>Provider / model: <code>{esc(summary.provider)}</code> /
+      <code>{esc(summary.model)}</code></li>
+    <li>Dataset: <code>{esc(summary.dataset)}</code></li>
     <li>Overall: <strong>{summary.passed}/{summary.total}</strong> ({summary.accuracy:.1%})</li>
   </ul>
   <h2>By category</h2>
@@ -180,27 +188,47 @@ def render_html(summary: RunSummary) -> str:
 """
 
 
-def write_tables(summary: RunSummary, md_path: Path, html_path: Path) -> None:
-    md_path.parent.mkdir(parents=True, exist_ok=True)
-    md_path.write_text(render_markdown(summary), encoding="utf-8")
-    html_path.write_text(render_html(summary), encoding="utf-8")
+def write_tables(summary: RunSummary, md_path: Path | None, html_path: Path | None) -> None:
+    if md_path is not None:
+        md_path.parent.mkdir(parents=True, exist_ok=True)
+        md_path.write_text(render_markdown(summary), encoding="utf-8")
+    if html_path is not None:
+        html_path.parent.mkdir(parents=True, exist_ok=True)
+        html_path.write_text(render_html(summary), encoding="utf-8")
 
 
-def load_existing_item_results(path: Path) -> dict[str, ItemResult]:
-    """Load prior item rows from a results.json for resume."""
+def load_existing_item_results(
+    path: Path, *, provider: str, model: str, dataset: str
+) -> dict[str, ItemResult]:
+    """Load prior item rows from a results.json for resume.
+
+    Rows are only reused when the earlier run used the same provider, model and dataset path;
+    otherwise the new run would silently mix results from different models.
+    """
     if not path.is_file():
         return {}
-    data = json.loads(path.read_text(encoding="utf-8"))
-    out: dict[str, ItemResult] = {}
-    for raw in data.get("items", []):
-        out[raw["id"]] = ItemResult(
-            id=raw["id"],
-            category=raw["category"],
-            scoring=raw["scoring"],
-            passed=bool(raw["passed"]),
-            prediction=raw["prediction"],
-            expected=list(raw["expected"]),
-            cached=bool(raw.get("cached", False)),
-            judge_used=bool(raw.get("judge_used", False)),
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        same_run = (
+            data["provider"] == provider and data["model"] == model and data["dataset"] == dataset
         )
+        if not same_run:
+            return {}
+        out: dict[str, ItemResult] = {}
+        for raw in data["items"]:
+            out[raw["id"]] = ItemResult(
+                id=raw["id"],
+                category=raw["category"],
+                scoring=raw["scoring"],
+                passed=bool(raw["passed"]),
+                prediction=raw["prediction"],
+                expected=list(raw["expected"]),
+                cached=bool(raw.get("cached", False)),
+                judge_used=bool(raw.get("judge_used", False)),
+            )
+    except (ValueError, KeyError, TypeError) as exc:
+        raise ValueError(
+            f"{path} cannot be used to resume ({type(exc).__name__}: {exc}); "
+            "fix or delete it, or pass --no-resume"
+        ) from exc
     return out

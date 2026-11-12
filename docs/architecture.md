@@ -24,7 +24,7 @@ Short decisions for v0.1.0.
 
 **Why.** Flaky networks and long suites should not redo finished work.
 
-**Trade-off.** Changing expected answers does not invalidate cache keys (prompt-only). Delete the cache after prompt edits.
+**Trade-off.** Cache keys are provider, model and prompt only, so editing a prompt's expected answers does not invalidate them (scoring is redone on every run, so this only matters for the response text). The mock provider is never cached: its answer depends on the item id and pass rate, not just the prompt. Resume reuses a row only when the earlier `results.json` has the same provider, model and dataset path and the item's scoring and expected answers are unchanged.
 
 ## ADR-004: Rule scoring first, optional judge
 

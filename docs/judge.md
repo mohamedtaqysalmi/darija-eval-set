@@ -1,4 +1,4 @@
-﻿# LLM judge (optional)
+# LLM judge (optional)
 
 See [judge-prompt.md](judge-prompt.md) for the full system/user prompts.
 

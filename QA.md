@@ -26,8 +26,8 @@ Out of scope for this tag: PyPI publish, native-speaker item review, live paid-A
 - [ ] Mock banner visible; overall counts match `site/results.json`
 - [ ] Category chips filter the item table
 - [ ] Copy quickstart button works in Chromium
-- [ ] Light / dark OS theme: text readable on hero and tables
-- [ ] Mobile ~375px: brand and leaderboard usable, no horizontal page scroll
+- [ ] Light / dark OS theme: text readable in the tables and callouts
+- [ ] Mobile ~360px: header and leaderboard usable, no horizontal page scroll
 - [ ] `darija-eval run --mock-pass-rate 100` finishes and labels MOCK
 - [ ] DATASHEET.md item count matches JSONL
 

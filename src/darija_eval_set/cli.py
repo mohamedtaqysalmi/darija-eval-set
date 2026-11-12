@@ -6,7 +6,7 @@ import typer
 
 from darija_eval_set.dataset import load_items
 from darija_eval_set.judge import Judge
-from darija_eval_set.providers import MockProvider, provider_from_env
+from darija_eval_set.providers import MockProvider, ProviderError, provider_from_env
 from darija_eval_set.runner import run_eval
 
 app = typer.Typer(help="Tools for the darija-eval-set benchmark.", no_args_is_help=True)
@@ -53,7 +53,10 @@ def run_cmd(
     ),
     cache_dir: Annotated[
         Path | None,
-        typer.Option("--cache-dir", help="Response cache directory (omit to disable)."),
+        typer.Option(
+            "--cache-dir",
+            help="Response cache directory (live providers only; --no-cache disables).",
+        ),
     ] = Path(".cache/darija-eval"),
     no_cache: Annotated[bool, typer.Option("--no-cache", help="Disable disk cache.")] = False,
     no_resume: Annotated[
@@ -110,7 +113,7 @@ def run_cmd(
             use_judge=judge,
             judge=judge_obj,
         )
-    except (ValueError, OSError) as exc:
+    except (ValueError, OSError, ProviderError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc
 

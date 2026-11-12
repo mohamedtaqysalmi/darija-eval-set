@@ -51,10 +51,6 @@ class Judge:
             review_status=item.review_status,
         )
         # Reuse the provider transport with a synthetic prompt.
-        response: ProviderResponse = self.provider.complete(prompt_item)
+        response: ProviderResponse = self.provider.complete(prompt_item, system=JUDGE_SYSTEM_PROMPT)
         answer = response.text.strip().upper()
-        if answer.startswith("YES"):
-            return True
-        if answer.startswith("NO"):
-            return False
-        return False
+        return answer.startswith("YES")

@@ -14,7 +14,6 @@ from darija_eval_set.results import (
     RunSummary,
     build_summary,
     load_existing_item_results,
-    render_markdown,
     write_json,
     write_tables,
 )
@@ -33,8 +32,8 @@ def _call_with_retries(
     while True:
         try:
             return provider.complete(item)
-        except ProviderError:
-            if attempt >= retries:
+        except ProviderError as exc:
+            if not exc.retryable or attempt >= retries:
                 raise
             time.sleep(backoff_s * (2**attempt))
             attempt += 1
@@ -58,19 +57,27 @@ def run_eval(
     if errors:
         raise ValueError(f"dataset has {len(errors)} invalid line(s); fix before running")
 
-    cache = ResponseCache(cache_dir) if cache_dir is not None else None
-    prior = load_existing_item_results(output_json) if resume else {}
-    results: list[ItemResult] = []
+    cache = ResponseCache(cache_dir) if cache_dir is not None and provider.cacheable else None
     model_name = getattr(provider, "model", provider.name)
+    dataset_label = str(dataset).replace("\\", "/")
+    prior = (
+        load_existing_item_results(
+            output_json, provider=provider.name, model=model_name, dataset=dataset_label
+        )
+        if resume
+        else {}
+    )
+    results: list[ItemResult] = []
 
     for item in items:
-        if item.id in prior:
-            results.append(prior[item.id])
+        old = prior.get(item.id)
+        # An edited item (new scoring rule or answers) must be re-run, not reused.
+        if old is not None and old.scoring == item.scoring.value and old.expected == item.expected:
+            results.append(old)
             continue
 
         cached = False
-        model_for_key = getattr(provider, "model", provider.name)
-        key = cache_key(provider.name, model_for_key, item.prompt)
+        key = cache_key(provider.name, model_name, item.prompt)
         response: ProviderResponse | None = cache.get(key) if cache else None
         if response is not None:
             cached = True
@@ -79,7 +86,6 @@ def run_eval(
             if cache is not None:
                 cache.set(key, response)
 
-        model_name = response.model
         passed = score(item.scoring, response.text, item.expected, item.threshold)
         judge_used = False
         if not passed and use_judge and judge is not None:
@@ -104,7 +110,7 @@ def run_eval(
             build_summary(
                 provider=provider.name,
                 model=model_name,
-                dataset=str(dataset).replace("\\", "/"),
+                dataset=dataset_label,
                 is_mock=provider.name == "mock",
                 items=results,
             ),
@@ -114,14 +120,10 @@ def run_eval(
     summary = build_summary(
         provider=provider.name,
         model=model_name,
-        dataset=str(dataset).replace("\\", "/"),
+        dataset=dataset_label,
         is_mock=provider.name == "mock",
         items=results,
     )
     write_json(summary, output_json)
-    if output_md is not None and output_html is not None:
-        write_tables(summary, output_md, output_html)
-    elif output_md is not None:
-        output_md.parent.mkdir(parents=True, exist_ok=True)
-        output_md.write_text(render_markdown(summary), encoding="utf-8")
+    write_tables(summary, output_md, output_html)
     return summary
