@@ -1,9 +1,4 @@
-/* darija-eval-set: accent colour and leaderboard-only rules. Everything else is base.css. */
-
-:root {
-  --accent-light: #3f4bbf;
-  --accent-dark: #9aa5ff;
-}
+/* darija-eval-set: leaderboard-only layout rules. Everything else is base.css. */
 
 .run-meta {
   display: flex;

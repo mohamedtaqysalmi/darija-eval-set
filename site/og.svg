@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="darija-eval-set: open Moroccan Darija benchmark">
-  <rect width="1200" height="630" fill="#fbfaf7"/>
-  <rect x="72" y="72" width="72" height="72" rx="12" fill="#3f4bbf"/>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="72" y="72" width="72" height="72" rx="12" fill="#1b1a17"/>
   <text x="108" y="128" text-anchor="middle" font-family="system-ui, sans-serif" font-size="46" font-weight="700" fill="#ffffff">د</text>
   <text x="72" y="260" font-family="system-ui, Arial, sans-serif" font-size="72" font-weight="700" fill="#1b1a17">darija-eval-set</text>
   <text x="72" y="330" font-family="system-ui, Arial, sans-serif" font-size="34" fill="#5d5a52">Moroccan Darija prompts with expected answers,</text>
   <text x="72" y="376" font-family="system-ui, Arial, sans-serif" font-size="34" fill="#5d5a52">and a runner that scores any model.</text>
-  <text x="72" y="500" font-family="system-ui, Arial, sans-serif" font-size="28" fill="#3f4bbf">Draft items, mock-labelled results</text>
+  <text x="72" y="500" font-family="system-ui, Arial, sans-serif" font-size="28" fill="#1b1a17">Draft items, mock-labelled results</text>
 </svg>
