@@ -91,7 +91,7 @@ def test_empty_env_values_fall_back_to_defaults(monkeypatch: pytest.MonkeyPatch)
     provider = provider_from_env()
     assert isinstance(provider, OpenAICompatProvider)
     assert provider.model == "gpt-4o-mini"
-    assert provider.base_url.startswith("https://api.openai.com")
+    assert provider.base_url == "https://api.openai.com/v1/chat/completions"
 
 
 @pytest.mark.parametrize(
