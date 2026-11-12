@@ -1,0 +1,25 @@
+/* darija-eval-set: leaderboard-only layout rules. Everything else is base.css. */
+
+.run-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.25rem;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.run-meta strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.items-wrap {
+  max-height: 24rem;
+  overflow-y: auto;
+}
+
+td.pass {
+  color: var(--ok);
+}
+td.fail {
+  color: var(--bad);
+}

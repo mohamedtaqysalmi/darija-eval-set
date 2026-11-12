@@ -1,101 +1,132 @@
-const categoryBody = document.getElementById("category-body");
-const itemsBody = document.getElementById("items-body");
-const runMeta = document.getElementById("run-meta");
-const mockBanner = document.getElementById("mock-banner");
-const chips = [...document.querySelectorAll(".chip")];
+(async function () {
+  const runMeta = document.getElementById("run-meta");
+  const filters = document.getElementById("filters");
+  const categoryRows = document.getElementById("category-rows");
+  const itemRows = document.getElementById("item-rows");
 
-let payload = null;
-let activeFilter = "all";
+  let payload = null;
+  let active = "all";
 
-function pct(n) {
-  return `${(Number(n) * 100).toFixed(1)}%`;
-}
+  function pct(value) {
+    return `${(Number(value) * 100).toFixed(1)}%`;
+  }
 
-function renderCategory() {
-  if (!payload) return;
-  const entries = Object.entries(payload.by_category || {});
-  const filtered =
-    activeFilter === "all" ? entries : entries.filter(([k]) => k === activeFilter);
-  if (!filtered.length) {
-    categoryBody.innerHTML = `<tr><td colspan="4">No rows for this filter.</td></tr>`;
+  function label(name) {
+    return name.replace(/_/g, " ");
+  }
+
+  function cell(text, className) {
+    const td = document.createElement("td");
+    td.textContent = text;
+    if (className) td.className = className;
+    return td;
+  }
+
+  function messageRow(text) {
+    const tr = document.createElement("tr");
+    const td = cell(text);
+    td.colSpan = 4;
+    tr.appendChild(td);
+    return tr;
+  }
+
+  function renderMeta() {
+    runMeta.replaceChildren();
+    const parts = [
+      ["provider", payload.provider],
+      ["model", payload.model],
+      ["overall", `${payload.passed}/${payload.total} (${pct(payload.accuracy)})`],
+      ["generated", payload.generated_at],
+      ["mock", payload.is_mock ? "yes" : "no"],
+    ];
+    parts.forEach(([name, value]) => {
+      const span = document.createElement("span");
+      const strong = document.createElement("strong");
+      strong.textContent = value;
+      span.append(`${name}: `, strong);
+      runMeta.appendChild(span);
+    });
+  }
+
+  function renderTables() {
+    categoryRows.replaceChildren();
+    const entries = Object.entries(payload.by_category || {}).filter(
+      ([name]) => active === "all" || name === active,
+    );
+    if (!entries.length) categoryRows.appendChild(messageRow("No rows for this filter."));
+    entries.forEach(([name, stats]) => {
+      const tr = document.createElement("tr");
+      tr.append(
+        cell(label(name)),
+        cell(String(stats.passed), "num"),
+        cell(String(stats.total), "num"),
+        cell(pct(stats.accuracy), "num"),
+      );
+      categoryRows.appendChild(tr);
+    });
+
+    itemRows.replaceChildren();
+    (payload.items || [])
+      .filter((item) => active === "all" || item.category === active)
+      .forEach((item) => {
+        const tr = document.createElement("tr");
+        const id = document.createElement("td");
+        const code = document.createElement("code");
+        code.textContent = item.id;
+        id.appendChild(code);
+        tr.append(
+          id,
+          cell(label(item.category)),
+          cell(item.scoring),
+          cell(item.passed ? "pass" : "fail", item.passed ? "pass" : "fail"),
+        );
+        itemRows.appendChild(tr);
+      });
+  }
+
+  function setFilter(next) {
+    active = next;
+    filters.querySelectorAll("button").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.filter === next));
+    });
+    renderTables();
+  }
+
+  function buildFilters() {
+    ["all", ...Object.keys(payload.by_category || {})].forEach((name) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "chip";
+      button.dataset.filter = name;
+      button.textContent = name === "all" ? "All" : label(name);
+      button.setAttribute("aria-pressed", String(name === active));
+      button.addEventListener("click", () => setFilter(name));
+      filters.appendChild(button);
+    });
+  }
+
+  try {
+    const response = await fetch("results.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    payload = await response.json();
+  } catch (error) {
+    categoryRows.replaceChildren(
+      messageRow(`Could not load results.json (${error.message}). Reload to try again.`),
+    );
     return;
   }
-  categoryBody.innerHTML = filtered
-    .map(
-      ([name, stats]) =>
-        `<tr>
-          <td>${name}</td>
-          <td>${stats.passed}</td>
-          <td>${stats.total}</td>
-          <td>${pct(stats.accuracy)}</td>
-        </tr>`
-    )
-    .join("");
-}
 
-function renderItems() {
-  if (!payload) return;
-  const rows = (payload.items || []).filter(
-    (row) => activeFilter === "all" || row.category === activeFilter
+  document.getElementById("fact-items").textContent = String(payload.total);
+  document.getElementById("fact-categories").textContent = String(
+    Object.keys(payload.by_category || {}).length,
   );
-  itemsBody.innerHTML = rows
-    .map(
-      (row) =>
-        `<tr>
-          <td><code>${row.id}</code></td>
-          <td>${row.category}</td>
-          <td>${row.scoring}</td>
-          <td class="${row.passed ? "pass-yes" : "pass-no"}">${row.passed ? "yes" : "no"}</td>
-        </tr>`
-    )
-    .join("");
-}
-
-function renderMeta() {
-  runMeta.innerHTML = `
-    <span>provider: ${payload.provider}</span>
-    <span>model: ${payload.model}</span>
-    <span>overall: ${payload.passed}/${payload.total} (${pct(payload.accuracy)})</span>
-    <span>generated: ${payload.generated_at}</span>
-  `;
-  mockBanner.hidden = !payload.is_mock;
-}
-
-function setFilter(next) {
-  activeFilter = next;
-  chips.forEach((chip) => {
-    chip.classList.toggle("is-active", chip.dataset.filter === next);
+  document.querySelectorAll("[data-count]").forEach((td) => {
+    td.textContent = String(
+      (payload.items || []).filter((item) => item.scoring === td.dataset.count).length,
+    );
   });
-  renderCategory();
-  renderItems();
-}
 
-chips.forEach((chip) => {
-  chip.addEventListener("click", () => setFilter(chip.dataset.filter));
-});
-
-document.querySelectorAll("[data-copy]").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    const text = btn.getAttribute("data-copy") || "";
-    try {
-      await navigator.clipboard.writeText(text.replace(/&#10;/g, "\n"));
-      btn.textContent = "Copied";
-      setTimeout(() => {
-        btn.textContent = "Copy";
-      }, 1200);
-    } catch {
-      btn.textContent = "Failed";
-    }
-  });
-});
-
-try {
-  const res = await fetch("results.json", { cache: "no-store" });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  payload = await res.json();
   renderMeta();
-  renderCategory();
-  renderItems();
-} catch (err) {
-  categoryBody.innerHTML = `<tr><td colspan="4">Could not load results.json (${err.message}).</td></tr>`;
-}
+  buildFilters();
+  renderTables();
+})();

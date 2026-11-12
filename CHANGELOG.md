@@ -7,6 +7,11 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Changed
+
+- Rebuilt the Pages site on the shared plain style (`base.css`, `base.js`, `page.css`); web fonts, decoration and the old stylesheet are gone.
+- Removed `site/results.html` and `site/results.md`, which duplicated the leaderboard with a different timestamp.
+
 ## [0.1.0] — 2026-11-11
 
 ### Added
