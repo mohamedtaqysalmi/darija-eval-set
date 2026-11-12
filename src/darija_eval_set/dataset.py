@@ -30,7 +30,18 @@ def load_items(path: Path) -> tuple[list[Item], list[LineError]]:
     items: list[Item] = []
     errors: list[LineError] = []
     seen: dict[str, int] = {}
-    with path.open(encoding="utf-8") as f:
+    try:
+        _read_lines(path, items, errors, seen)
+    except UnicodeDecodeError as exc:
+        errors.append(LineError(path, 0, f"not valid UTF-8 ({exc.reason} at byte {exc.start})"))
+    return items, errors
+
+
+def _read_lines(
+    path: Path, items: list[Item], errors: list[LineError], seen: dict[str, int]
+) -> None:
+    # utf-8-sig: a BOM from an editor on Windows is not part of the first JSON line
+    with path.open(encoding="utf-8-sig") as f:
         for lineno, raw in enumerate(f, start=1):
             if not raw.strip():
                 continue
@@ -53,4 +64,3 @@ def load_items(path: Path) -> tuple[list[Item], list[LineError]]:
                 continue
             seen[item.id] = lineno
             items.append(item)
-    return items, errors

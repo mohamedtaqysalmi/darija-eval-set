@@ -7,6 +7,20 @@ and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 
 ## [Unreleased]
 
+### Fixed
+
+- The mock provider's answers were cached by prompt only, so `--mock-pass-rate` changes were silently ignored on a second run. The mock is no longer cached.
+- Resume reused rows from any earlier `results.json`, even from another provider, model or dataset, or for items whose answers had changed. It now checks all of these, and an unreadable results file gives a clear error.
+- The judge sent the answering system prompt instead of the documented judge prompt.
+- `DARIJA_EVAL_BASE_URL` accepted `file://` and plain `http://` URLs. Only https, or http on localhost, is allowed now.
+- Provider failures: 401 and other 4xx errors are no longer retried, timeouts and invalid JSON bodies become `ProviderError`, and `run` prints the error instead of a traceback.
+- HTML results escape the model name and dataset path.
+- `results.json` and cache files are written atomically; a corrupt cache entry counts as a miss.
+- `validate` accepts a UTF-8 BOM and reports invalid UTF-8 instead of crashing.
+- `--html` without `--md` wrote nothing.
+- Removed `scripts/generate_items.py`: it no longer produced the shipped `data/items.jsonl` (130 of 150 items differed), so running it would have silently replaced the data.
+- Docs and TEST_REPORT brought in line with the code.
+
 ## [0.1.0] — 2026-11-11
 
 ### Added

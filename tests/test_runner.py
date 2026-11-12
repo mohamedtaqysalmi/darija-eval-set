@@ -102,7 +102,7 @@ def test_run_eval_resumes(tmp_path: Path) -> None:
 
 def test_retries_eventually_fail(tmp_path: Path) -> None:
     class Boom(MockProvider):
-        def complete(self, item: Item) -> ProviderResponse:
+        def complete(self, item: Item, *, system: str | None = None) -> ProviderResponse:
             raise ProviderError("nope")
 
     with pytest.raises(ProviderError):
